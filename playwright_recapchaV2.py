@@ -50,30 +50,61 @@ class AsyncRecaptchaSolver:
             Exception: If captcha solving fails or bot is detected
         """
         try:
-            challenge_frame = self.page.frame_locator('//iframe[@title="recaptcha challenge expires in two minutes"]')
+            # Handle main reCAPTCHA iframe
+            recaptcha_frame = self.page.frame_locator('//iframe[@title="reCAPTCHA"]')
+            await recaptcha_frame.locator(".rc-anchor-content").wait_for(timeout=self.TIMEOUT_STANDARD)
+            # Add random delay to mimic human behavior
+            await asyncio.sleep(random.uniform(0.5, 1.5))
+            # Simulate mouse movement before clicking checkbox
+            await self.page.mouse.move(100, 100)
+            await asyncio.sleep(0.2)
+            await self.page.mouse.move(200, 200)
+            await asyncio.sleep(0.2)
+            # Click the checkbox
+            await recaptcha_frame.locator(".rc-anchor-content").click(timeout=self.TIMEOUT_SHORT)
+            # Add random delay after clicking checkbox
+            await asyncio.sleep(random.uniform(0.3, 0.8))
+            # Check if solved by just clicking
+            if await self.is_solved():
+                return
+            # Handle audio challenge
+            challenge_frame = self.page.frame_locator('//iframe[contains(@title, "recaptcha challenge")]')
             await challenge_frame.locator("#recaptcha-audio-button").wait_for(timeout=self.TIMEOUT_STANDARD)
             await challenge_frame.locator("#recaptcha-audio-button").click(timeout=self.TIMEOUT_SHORT)
             await asyncio.sleep(0.3)
 
             if await self.is_detected():
                 raise Exception("Captcha detected bot behavior")
-            
+
+            # click recaptcha audio button
             await challenge_frame.locator("#\\:2").click(timeout=self.TIMEOUT_SHORT)
             await asyncio.sleep(0.5) 
 
-            text_response = await self._process_audio_challenge()
-            print(f"audio2text: {text_response}")
-            if not text_response:
-                raise Exception("No recognized text in audio")
+            try:
+                # vosk recongize audio to text
+                text_response = await self._process_audio_challenge()
+                print(f"audio2text: {text_response}")
+                if not text_response:
+                    raise Exception("not recongized text in audio")
+                await challenge_frame.locator("#audio-response").fill(text_response.lower())
 
-            await challenge_frame.locator("#audio-response").fill(text_response.lower())
-            await asyncio.sleep(1)
-            
-            await challenge_frame.locator("#recaptcha-verify-button").click()
-            await asyncio.sleep(random.uniform(0.4, 1.2))
-            
-            if not await self.is_solved():
-                raise Exception("Failed to solve the captcha")
+                # Simulate mouse movement before clicking verify button
+                await self.page.mouse.move(150, 150)
+                await asyncio.sleep(0.2)
+                await self.page.mouse.move(250, 250)
+                await asyncio.sleep(0.2)
+
+                await challenge_frame.locator("#recaptcha-verify-button").click()
+
+                # Add random delay after clicking verify button
+                await asyncio.sleep(random.uniform(0.4, 1.2))
+                await asyncio.sleep(0.4)
+
+                if not await self.is_solved():
+                    raise Exception("Failed to solve the captcha")
+
+            except Exception as e:
+                raise Exception(f"Audio challenge failed: {str(e)}")
 
         except Exception as e:
             raise Exception(f"Failed to solve the captcha: {str(e)}")
