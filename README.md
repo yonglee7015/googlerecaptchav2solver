@@ -1,31 +1,26 @@
-# Google reCAPTCHA Audio Bypass with Playwright
+# Google reCAPTCHA Audio Solver with Playwright (Async)
 
-This project is inspired by [GoogleRecaptchaBypass](https://github.com/sarperavci/GoogleRecaptchaBypass), but instead of using traditional tools like Selenium or Puppeteer, I used **[Playwright](https://playwright.dev/)** for browser automation and implemented a method to handle **Google reCAPTCHA audio challenges** by **recording and processing the audio files**.
+This project is inspired by [GoogleRecaptchaBypass](https://github.com/sarperavci/GoogleRecaptchaBypass), but uses **Playwright (async version)** for browser automation and leverages **system audio recording + Vosk speech recognition** to solve **Google reCAPTCHA audio challenges**.
 
-> ⚠️ This project is intended for educational and research purposes only. Please use it responsibly and in compliance with applicable laws and service terms.
+> ⚠️ This tool is intended for educational and research purposes only. Please use responsibly and in compliance with applicable laws and service terms.
 
-## 🧠 Overview
+---
 
-This script automates the process of interacting with Google reCAPTCHA by:
+## 🧠 Features
 
-1. Launching a browser via **Playwright**
-2. Navigating to a target page with reCAPTCHA
-3. Detecting when an audio CAPTCHA appears
-4. Automatically clicking the audio challenge button
-5. Recording the audio file provided by reCAPTCHA
-6. (Optional) Processing the audio file (e.g., speech-to-text)
+- Asynchronous implementation using `async/await` and Playwright's async API.
+- Detects and handles reCAPTCHA checkbox and audio challenge interface.
+- Records system audio output during the CAPTCHA playback.
+- Uses [Vosk](https://alphacephei.com/vosk/) (offline speech-to-text) to recognize the spoken text from the audio.
+- Mimics human behavior using random delays and mouse movement.
+- Cleans up temporary files after execution.
+
+---
 
 ## 🔧 Requirements
 
 Make sure you have the following installed:
 
-- Python 3.x
-- Playwright (`pip install playwright`)
-- PyAudio (`pip install pyaudio`)
-- SpeechRecognition (`pip install SpeechRecognition`)
-- FFmpeg (optional, for audio conversion)
-
-Install dependencies:
+### Python Libraries:
 ```bash
-pip install playwright pyaudio SpeechRecognition
-playwright install
+pip install playwright vosk soundcard pyaudio numpy
